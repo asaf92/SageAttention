@@ -70,7 +70,7 @@ compute_capabilities = set()
 cuda_archs_env = os.environ.get("SAGEATTENTION_CUDA_ARCH_LIST")
 if cuda_archs_env:
     print(f"Detected SAGEATTENTION_CUDA_ARCH_LIST: {cuda_archs_env}")
-    for x in cuda_archs_env.split():
+    for x in cuda_archs_env.split(';'):
         print(f"Adding {x}")
         compute_capabilities.add(x)
 else:
