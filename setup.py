@@ -66,15 +66,22 @@ def get_nvcc_cuda_version(cuda_dir: str) -> Version:
     nvcc_cuda_version = parse(output[release_idx].split(",")[0])
     return nvcc_cuda_version
 
-# Iterate over all GPUs on the current machine. Also you can modify this part to specify the architecture if you want to build for specific GPU architectures.
 compute_capabilities = set()
-device_count = torch.cuda.device_count()
-for i in range(device_count):
-    major, minor = torch.cuda.get_device_capability(i)
-    if major < 8:
-        warnings.warn(f"skipping GPU {i} with compute capability {major}.{minor}")
-        continue
-    compute_capabilities.add(f"{major}.{minor}")
+cuda_archs_env = os.environ.get("SAGEATTENTION_CUDA_ARCH_LIST")
+if cuda_archs_env:
+    print(f"Detected SAGEATTENTION_CUDA_ARCH_LIST: {cuda_archs_env}")
+    for x in cuda_archs_env.split():
+        print(f"Adding {x}")
+        compute_capabilities.add(x)
+else:
+    # Iterate over all GPUs on the current machine.
+    device_count = torch.cuda.device_count()
+    for i in range(device_count):
+        major, minor = torch.cuda.get_device_capability(i)
+        if major < 8:
+            warnings.warn(f"skipping GPU {i} with compute capability {major}.{minor}")
+            continue
+        compute_capabilities.add(f"{major}.{minor}")
 
 nvcc_cuda_version = get_nvcc_cuda_version(CUDA_HOME)
 if not compute_capabilities:
@@ -186,3 +193,4 @@ setup(
     ext_modules=ext_modules,
     cmdclass={"build_ext": BuildExtension},
 )
+
